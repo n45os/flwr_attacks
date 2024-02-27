@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./misc/flwr-att-lg.png" width="140px" alt="modified flwr logo" />
+    <img src="https://github.com/n45os/flwr_attacks/blob/main/misc/flwr-att-lg.png?raw=true" width="140px" alt="modified flwr logo" />
 </p>
 
 # Flower Attacks  
@@ -34,11 +34,10 @@ After installation, you can use `flwr_attacks` as part of your federated learnin
 
 Configuration for the attack (assuming cfg is an existing configuration object)
 ```python
-from flwr_attacks import AttackServer, MinMax  
+from flwr_attacks import MinMax, AttackServer, generate_cids
 
-all_cids = ["client1", "client2", "client3", "client4", "client5", "client6", "client7", "client8", "client9", "client10"]
-
-adversary_clients = ["client1", "client2", "client3"]
+adversary_cids, benign_cids = generate_cids(NUM_CLIENTS, adversary_fraction=0.4)
+all_cids = adversary_cids + benign_cids
 ```
 
  Initialize the MinMax attack with your configuration
@@ -46,7 +45,7 @@ adversary_clients = ["client1", "client2", "client3"]
 attack = MinMaxAttack(
     adversary_fraction=0.2,  # 20% of clients are adversaries
     activation_round=5,  # Activate attack at round 5
-    adversary_clients=adversary_clients, # by default the attack will be able to access only the adverary clients. Use the argument adversary_accessed_cids to add specific access.
+    adversary_clients=adversary_cids, # by default the attack will be able to access only the adversary clients. Use the argument adversary_accessed_cids to add specific access.
 )
 
 strategy = ...
