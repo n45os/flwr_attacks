@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "flwr_attacks"
+version = "0.1.0"
+description = "Flower Attacks: This is an extension of the Flower framework for Federated Learning. It provides an extenion module that allows the user to perform various attacks on the federated learning process."
+readme = "README.md"
+repository = "https:''github.com/n45os/flwr_attacks"
+authors = ["Nassos Bountioukos Spinaris <nassosbountioukos@gmail.com>"]
+keywords = [
+    "federated learning",
+    "flower",
+    "attacks",
+    "adversarial attacks",
+    "machine learning",
+    "privacy",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+exclude = ["tests", "docs", "examples"]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+flwr = ">=1.6.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
