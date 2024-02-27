@@ -3,7 +3,7 @@ name = "flwr_attacks"
 version = "0.1.0"
 description = "Flower Attacks: This is an extension of the Flower framework for Federated Learning. It provides an extenion module that allows the user to perform various attacks on the federated learning process."
 readme = "README.md"
-repository = "https:''github.com/n45os/flwr_attacks"
+repository = "https://github.com/n45os/flwr_attacks"
 authors = ["Nassos Bountioukos Spinaris <nassosbountioukos@gmail.com>"]
 keywords = [
     "federated learning",
