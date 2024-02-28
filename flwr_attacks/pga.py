@@ -130,12 +130,19 @@ class PGAAttack(ModelPoisoningAttack):
             ]
         )
 
-        reversed_updates: NDArrays = self.reverse_train_fn(
-            client=_client,
+        # reversed_updates: NDArrays = self.reverse_train_fn(
+        #     client=_client,
+        #     epochs=self.reverse_epochs,
+        #     lr=self.reverse_lr,
+        #     updates=parameters_to_ndarrays(params_copy),
+        # )
+
+        reversed_updates: NDArrays = _client.numpy_client.reverse_train(
             epochs=self.reverse_epochs,
             lr=self.reverse_lr,
-            updates=parameters_to_ndarrays(params_copy),
+            parameters=parameters_to_ndarrays(params_copy),
         )
+
         reversed_result = create_res_like(
             res=results[0],
             parameters=ndarrays_to_parameters(reversed_updates),
