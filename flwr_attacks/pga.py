@@ -43,9 +43,7 @@ class PGAAttack(ModelPoisoningAttack):
         activation_round: int = 0,
         strategy: Strategy = None,
         client_fn: Callable[[str], ClientProxy] = None,
-        reverse_train_fn: Callable[[int, float, NDArrays], NDArrays] = None,
-        reverse_epochs: int = 1,
-        reverse_lr: float = 0.01,
+        reverse_config: Dict[str, Union[int, float]] = None,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -78,16 +76,10 @@ class PGAAttack(ModelPoisoningAttack):
         if strategy is None:
             log(ERROR, "Strategy not provided")
             raise ValueError("Strategy not provided")
+        
+        self.reverse_config = reverse_config
 
         self.client_fn = client_fn
-        self.reverse_epochs = reverse_epochs
-        self.reverse_lr = reverse_lr
-        if reverse_train_fn is None:
-            raise ValueError(
-                "You haven't provided a reverse_train_fn method."
-                "View instructions on how to implement it https://github.com/n45os/flwr_attacks/docs/pga-attack-implementation.md"
-            )
-        self.reverse_train_fn = reverse_train_fn
 
     def attack_fit(
         self,
@@ -130,6 +122,13 @@ class PGAAttack(ModelPoisoningAttack):
             ]
         )
 
+        # check if the client has a reverse_train method
+        if not hasattr(_client.numpy_client, "reverse_train"):
+            raise ValueError(
+                "You haven't provided a reverse_train_fn method."
+                "View instructions on how to implement it https://github.com/n45os/flwr_attacks/docs/pga-attack-implementation.md"
+            )
+
         # reversed_updates: NDArrays = self.reverse_train_fn(
         #     client=_client,
         #     epochs=self.reverse_epochs,
@@ -138,8 +137,7 @@ class PGAAttack(ModelPoisoningAttack):
         # )
 
         reversed_updates: NDArrays = _client.numpy_client.reverse_train(
-            epochs=self.reverse_epochs,
-            lr=self.reverse_lr,
+            reverse_config=self.reverse_config,
             parameters=parameters_to_ndarrays(params_copy),
         )
 
