@@ -247,7 +247,7 @@ class AttackServer(Server):
 		# Attack model and replace previous global model
 		# If the user provides an attack, then we will use it
 		att_parameters_aggregated = None
-		if self.attack is not None and self.attack.adversary_fraction > 0:
+		if self.attack is not None and self.attack.adversary_fraction > 0 and self.attack.activation_round <= server_round:
 			res_attack = self.attack.attack_fit(
 				server_round=server_round,
 				results=copy.deepcopy(results),
