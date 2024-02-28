@@ -129,13 +129,6 @@ class PGAAttack(ModelPoisoningAttack):
                 "View instructions on how to implement it https://github.com/n45os/flwr_attacks/docs/pga-attack-implementation.md"
             )
 
-        # reversed_updates: NDArrays = self.reverse_train_fn(
-        #     client=_client,
-        #     epochs=self.reverse_epochs,
-        #     lr=self.reverse_lr,
-        #     updates=parameters_to_ndarrays(params_copy),
-        # )
-
         reversed_updates: NDArrays = _client.numpy_client.reverse_train(
             reverse_config=self.reverse_config,
             parameters=parameters_to_ndarrays(params_copy),
