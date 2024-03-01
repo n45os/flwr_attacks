@@ -51,7 +51,7 @@ attack = MinMaxAttack(
 strategy = ...
 
 # Create the AttackServer with the specified attack and strategy
-server = AttackServer(
+attack_server = AttackServer(
     strategy=strategy,
     attack=attack,
 )
@@ -65,12 +65,15 @@ history = fl.simulation.start_simulation(
     client_fn=client_fn,
     clients_ids=all_cids,
     config=fl.server.ServerConfig(num_rounds=cfg.num_rounds),
-    server=server,
+    server=attack_server,
 )
 ```
 or start the server
 ```python 
-server.start()
+
+fl.server.start_server(
+    server=attack_server,
+)
 ```
 
 Contributing
