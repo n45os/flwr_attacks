@@ -28,7 +28,7 @@ class MinMax(ModelPoisoningAttack):
         perturbation_type="psgn",  # puv: Inverse unit vector, pstd: Inverse standard deviation, psgn: Inverse sign of the average
 		gamma_init: float = 10.0,  # Initial value, can be adjusted based on domain knowledge
 		tau: float = 0.001,  # Threshold for stopping the optimization
-		step: float = 0.1,  # step size
+		step: float = None,  # step size
 		**kwargs,
 	) -> None:
 		super().__init__(
