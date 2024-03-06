@@ -31,6 +31,10 @@ def average_params(ndarrays_list: List[NDArrays]) -> NDArrays:
 def generate_perturbations(ndarray_list, perturbation_type):
 
 	avg_params = average_params(ndarray_list)
+
+	if perturbation_type == "random":
+		# Random perturbation. Choose randomely from ["puv", "pstd", "psgn"]
+		perturbation_type = np.random.choice(["puv", "pstd", "psgn"])
 	
 	if perturbation_type == "puv":
 		# Inverse unit vector
