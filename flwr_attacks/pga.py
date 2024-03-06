@@ -62,16 +62,15 @@ class PGAAttack(ModelPoisoningAttack):
             raise ValueError(
                 "Adversary clients or adversary accessed cids not provided"
             )
-        num_malicious = int(adversary_fraction * num_benign / (1 - adversary_fraction))
+        
+        # There is the probability that not all the clients will be sampled
+        # So, this self.malicious_clients could be a bit misleading.
+        # This is way it is also cecked and changed every time the function is called
+        self.num_malicious = int(adversary_fraction * num_benign / (1 - adversary_fraction))
 
-        # change the num_of_malicious clients to the strategies that need it based on the results that we have available
         # make a deep copy of the strategy
         self.strategy = copy.deepcopy(strategy)
-        if hasattr(strategy, "num_malicious_clients"):
-            if isinstance(strategy, Bulyan):
-                while num_benign < 4 * num_malicious + 3:
-                    num_malicious -= 1
-            self.strategy.num_malicious_clients = num_malicious - 1
+
 
         if strategy is None:
             log(ERROR, "Strategy not provided")
@@ -104,6 +103,16 @@ class PGAAttack(ModelPoisoningAttack):
             )
         ]
 
+
+        # If the strategy has the num_malicious_clients attribute, we need to update it based on the results that we have available
+        # Moreover, if the strategy is Bulyan, we need to make sure that the number of clients is at least 4 * num_malicious + 3
+        if hasattr(self.strategy, "num_malicious_clients"):
+            get_correct_num_malicious(len(useable_results), self.strategy)
+            
+        self.num_malicious = self.strategy.num_malicious_clients
+
+        
+
         # get the average num_examples of the results
         average_num_examples = int(
             sum([res[1].num_examples for res in results]) / len(useable_results)
@@ -126,7 +135,8 @@ class PGAAttack(ModelPoisoningAttack):
         if not hasattr(_client.numpy_client, "reverse_train"):
             raise ValueError(
                 "You haven't provided a reverse_train_fn method."
-                "View instructions on how to implement it https://github.com/n45os/flwr_attacks/docs/pga-attack-implementation.md"
+                "View instructions on how to implement it "
+                "https://github.com/n45os/flwr_attacks/docs/pga-attack-implementation.md"
             )
 
         reversed_updates: NDArrays = _client.numpy_client.reverse_train(
@@ -147,8 +157,8 @@ class PGAAttack(ModelPoisoningAttack):
                 attack_res=reversed_result,
                 benign_results=useable_results,
                 strategy=self.strategy,
-                fraction_of_malicious=self.adversary_fraction,
                 num_examples=average_num_examples,
+                num_malicious=self.num_malicious,
             )
 
             malicious_gradient = scalar_multiply_ndarrays(
@@ -181,18 +191,13 @@ def projection(
     attack_res: Tuple[ClientProxy, FitRes],
     benign_results: List[Tuple[ClientProxy, FitRes]],
     strategy: Strategy,
-    fraction_of_malicious: float,
     num_examples: int,
+    num_malicious: int,
 ) -> float:
     succ_d = 0
     succ_gamma = 1
 
     attack_update: NDArrays = parameters_to_ndarrays(attack_res[1].parameters)
-
-    num_benign = len(benign_results)
-    num_malicious = int(
-        fraction_of_malicious * num_benign / (1 - fraction_of_malicious)
-    )
 
     norm_attack_vector = calculate_norm_of_ndarrays(attack_update)
 
@@ -201,6 +206,10 @@ def projection(
         ndarrays=attack_update,
     )
 
+    # before calling this, we have to make sure that the criteria for the
+    # strategy are met
+    # for Bulyan we set the maximum number of malicious it can take:
+    get_correct_num_malicious(len(benign_results) - strategy.num_malicious_clients, strategy)
     benign_aggregate, _ = strategy.aggregate_fit(
         server_round=0, results=benign_results, failures=[]
     )
@@ -209,7 +218,7 @@ def projection(
     not_found_counter = 0
     found_counter = 0
     rrange = 5
-    step = 0.01
+    step = 0.05
     gamma = 0.00
     while gamma < rrange:
         new_attack_vector: NDArrays = scalar_multiply_ndarrays(
@@ -229,6 +238,7 @@ def projection(
         all_params_result: List[Tuple[ClientProxy, FitRes]] = (
             all_malicious + benign_results
         )
+        get_correct_num_malicious(len(all_params_result), strategy)
         attack_aggregate, _ = strategy.aggregate_fit(
             server_round=0, results=all_params_result, failures=[]
         )
@@ -250,11 +260,11 @@ def projection(
             found_counter = 0
         if (
             not_found_counter > 120
-        ):  # if we have not found a better gamma in 250 iterations, break
+        ):  # if we have not found a better gamma in 120 iterations, break
             break
         if (
             found_counter > 40
-        ):  # if we have found a better gamma in 250 iterations, increase the gamma by 0.1
+        ):  # if we have found a better gamma in 40 iterations, increase the gamma by 0.05
             step += 0.05
 
         gamma += step
@@ -271,3 +281,14 @@ def compute_τ(benign_updates: List[NDArrays]) -> float:
 
     tau = total_norm / num_updates
     return tau
+
+
+def get_correct_num_malicious(num_benign, strategy):
+    if hasattr(strategy, "num_malicious_clients"):
+        if isinstance(strategy, Bulyan):
+            _num_malicious = strategy.num_malicious_clients
+            if _num_malicious > (num_benign - 3)/3:
+                _num_malicious = (num_benign - 3)/3
+                _num_malicious -= 0.5
+                _num_malicious = int(_num_malicious)
+            strategy.num_malicious_clients = _num_malicious
