@@ -103,13 +103,15 @@ class PGAAttack(ModelPoisoningAttack):
             )
         ]
 
+        # we update the num_malicious based on the available results
+        self.num_malicious = int(self.adversary_fraction * len(useable_results) / (1 - self.adversary_fraction))
+
 
         # If the strategy has the num_malicious_clients attribute, we need to update it based on the results that we have available
         # Moreover, if the strategy is Bulyan, we need to make sure that the number of clients is at least 4 * num_malicious + 3
         if hasattr(self.strategy, "num_malicious_clients"):
             get_correct_num_malicious(len(useable_results), self.strategy)
-            
-        self.num_malicious = self.strategy.num_malicious_clients
+            self.num_malicious = self.strategy.num_malicious_clients
 
         
 
