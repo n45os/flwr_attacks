@@ -42,7 +42,7 @@ def minmax_attack(
 	
 	gamma = _optimizer(minmax_objective_fn, gamma_init, tau, step)
 	malicious_gradient = compute_malicious(ndarray_list, perturbation, gamma)
-	return malicious_gradient
+	return malicious_gradient, gamma
 
 
 def minsum_attack(

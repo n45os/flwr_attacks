@@ -56,6 +56,21 @@ def generate_perturbations(ndarray_list, perturbation_type):
 
 	return perturbation
 
+
+def generate_all_perturbations(ndarray_list):
+	# Returns a list of all perturbations
+
+	all_pertrunations = []
+	# Inverse unit vector
+	all_pertrunations.append(("puv", generate_perturbations(ndarray_list, "puv")))
+	# Inverse standard deviation
+	all_pertrunations.append(("pstd", generate_perturbations(ndarray_list, "pstd")))
+	# Inverse sign of the average
+	all_pertrunations.append(("psgn", generate_perturbations(ndarray_list, "psgn")))
+
+	return all_pertrunations
+
+
 def compute_malicious(ndarray_list: List[NDArrays], perturbation: NDArrays, gamma: float) -> NDArrays:
 	"""
 	Computing the sum of the average of the accessed gradients plus gamma times the perturbation vector

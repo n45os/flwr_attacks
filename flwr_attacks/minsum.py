@@ -14,7 +14,7 @@ from flwr.common.parameter import (
 
 from flwr_attacks.algorithms import minsum_attack
 from flwr_attacks.minmax import MinMax
-from flwr_attacks.computations import generate_perturbations
+from flwr_attacks.computations import generate_all_perturbations, generate_perturbations
 
 
 class MinSum(MinMax):
@@ -37,18 +37,47 @@ class MinSum(MinMax):
 		if len(adversial_parameters) == 0:
 			return results, failures, metrics
 
-		perturbation = generate_perturbations(
-			[params for params, _ in adversial_parameters], self.perturbation_type
-		)
-
 		if server_round > self.activation_round:
-			malicious_gradient = minsum_attack(
-				[params for params, _ in adversial_parameters],
-				perturbation,
-				self.gamma,
-				self.tau,
-				self.step,
-			)
+			if self.perturbation_type == "optimal":
+				perturbations = generate_all_perturbations(
+					[params for params, _ in adversial_parameters]
+				)
+				best_perturbation_type = None
+				best_malicious_gradient = None
+				best_gamma = 0
+				for perturbation_type, perturbation in perturbations:
+					malicious_gradient, gamma = minsum_attack(
+						[params for params, _ in adversial_parameters],
+						perturbation,
+						self.gamma_init,
+						self.tau,
+						self.step,
+					)
+					if gamma > best_gamma:
+						best_gamma = gamma
+						best_perturbation_type = perturbation_type
+						best_malicious_gradient = malicious_gradient
+
+				perturbation_type = best_perturbation_type
+				optimized_gamma = best_gamma
+				malicious_gradient = best_malicious_gradient
+
+			else:
+				perturbation = generate_perturbations(
+					[params for params, _ in adversial_parameters], self.perturbation_type
+				)
+				perturbation_type = self.perturbation_type
+				malicious_gradient, optimized_gamma = minsum_attack(
+					[params for params, _ in adversial_parameters],
+					perturbation,
+					self.gamma,
+					self.tau,
+					self.step,
+				)
+
+			# Add gamma to the metrics
+			metrics["gamma"] = optimized_gamma
+			metrics["perturbation_type"] = perturbation_type
 
 			for client, fit_res in results:
 				if client.cid in self.adversary_clients:
