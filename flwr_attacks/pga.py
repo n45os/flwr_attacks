@@ -211,7 +211,9 @@ def projection(
     # before calling this, we have to make sure that the criteria for the
     # strategy are met
     # for Bulyan we set the maximum number of malicious it can take:
-    get_correct_num_malicious(len(benign_results) - strategy.num_malicious_clients, strategy)
+    if hasattr(strategy, "num_malicious_clients"): 
+        get_correct_num_malicious(len(benign_results) - strategy.num_malicious_clients, strategy)
+
     benign_aggregate, _ = strategy.aggregate_fit(
         server_round=0, results=benign_results, failures=[]
     )
