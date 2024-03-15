@@ -31,6 +31,10 @@ def average_params(ndarrays_list: List[NDArrays]) -> NDArrays:
 def generate_perturbations(ndarray_list, perturbation_type):
 
 	avg_params = average_params(ndarray_list)
+
+	if perturbation_type == "random" or perturbation_type not in ["puv", "pstd", "psgn"]:
+		# Random perturbation. Choose randomly from ["puv", "pstd", "psgn"]
+		perturbation_type = np.random.choice(["puv", "pstd", "psgn"])
 	
 	if perturbation_type == "puv":
 		# Inverse unit vector
@@ -51,6 +55,21 @@ def generate_perturbations(ndarray_list, perturbation_type):
 		perturbation = scalar_multiply_ndarrays(-1.0, avg_params)
 
 	return perturbation
+
+
+def generate_all_perturbations(ndarray_list):
+	# Returns a list of all perturbations
+
+	all_pertrunations = []
+	# Inverse unit vector
+	all_pertrunations.append(("puv", generate_perturbations(ndarray_list, "puv")))
+	# Inverse standard deviation
+	all_pertrunations.append(("pstd", generate_perturbations(ndarray_list, "pstd")))
+	# Inverse sign of the average
+	all_pertrunations.append(("psgn", generate_perturbations(ndarray_list, "psgn")))
+
+	return all_pertrunations
+
 
 def compute_malicious(ndarray_list: List[NDArrays], perturbation: NDArrays, gamma: float) -> NDArrays:
 	"""
